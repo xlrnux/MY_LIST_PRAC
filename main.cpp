@@ -3,6 +3,7 @@
 #include<cstdlib>
 using namespace std;
 
+typedef __SIZE_TYPE__ size_t2;
 typedef unsigned int ADDR;
 
 template<typename T>
@@ -11,18 +12,17 @@ struct Node{
     ADDR prev;
     ADDR next;
 };
-template <typename T>
-class List{
+
+template <typename T, size_t2 _capacity>
+class List {
 public:
-    int _capacity = 1000;
-    int _size;
+    //int _capacity = _capacity;
+    size_t2 _size;
     ADDR pos;
-    Node<T> node[1000+2];
-    T Temp[1000];
+    Node<T> node[_capacity+2];
+    T Temp[_capacity];
     ADDR HEAD;
     ADDR TAIL;
-
-
 private:
     ADDR link(const ADDR& prev, const ADDR& next, const T& val){
         node[pos].val = val;
@@ -127,6 +127,14 @@ public:
         return TAIL;
     }
 
+    bool empty() const{
+        return _size == 0;
+    }
+
+    size_t2 size() const{
+        return _size;
+    }
+
     void defrag(){
         if(_size == pos) return;
 
@@ -172,10 +180,56 @@ public:
         sort(0, _size -1);
     }
 };
+template<typename T, size_t2 _capacity1, size_t2 _capacity2, size_t2 _capacity3>
+void Merge_List(List<T, _capacity1>& Front, List<T, _capacity2>& Back, List<T,_capacity3>& Ret){
+    if(Front.size() + Back.size() > _capacity3) return;
+
+    Ret.clear();
+    for(ADDR it = Front.begin(); it != Front.end(); it = Front.next(it)){
+        Ret.push_back(Front.get(it));
+    }
+    for(ADDR it = Back.begin(); it != Back.end(); it = Back.next(it)){
+        Ret.push_back(Back.get(it));
+    }
+}
+
+template<typename T, size_t2 _capacity1, size_t2 _capacity2, size_t2 _capacity3>
+void Merge_List_withSort(List<T, _capacity1>& Front, List<T, _capacity2>& Back, List<T,_capacity3>& Ret){
+    if(Front.size() + Back.size() > _capacity3) return;
+
+    Front.sort();
+    Back.sort();
+
+    Ret.clear();
+    ADDR f_it = Front.begin(), b_it = Back.begin();
+
+    while( f_it != Front.end() && b_it != Back.end() ){
+        T fv = Front.get(f_it), bv = Back.get(b_it);
+        if( fv < bv ){
+            Ret.push_back( fv );
+            f_it = Front.next(f_it);
+        }else{
+            Ret.push_back( bv );
+            b_it = Back.next(b_it);
+        }
+    }
+
+    if(f_it == Front.end() ){
+        while( b_it != Back.end() ){
+            Ret.push_back( Back.get(b_it) );
+            b_it = Back.next(b_it);
+        }
+    }else{
+        while( f_it != Front.end() ){
+            Ret.push_back( Front.get(f_it) );
+            f_it = Front.next(f_it);
+        }
+    }
+}
 
 
 int main() {
-    List<int> A = List<int>();
+    List<int,10000> A = List<int,10000>();
 
     list<int> stl;
     srand(4);
@@ -191,6 +245,9 @@ int main() {
             //if (i % 17 == 0) A.insert(rand() % MOD, (int) (i - 11));
         }
     }
+
+
+
 
     for(ADDR it = A.begin(); it != A.end(); it = A.next(it)){
         cout << A.get(it) << " ";
@@ -223,6 +280,69 @@ int main() {
     for(int i = 0; i < A.pos; i++){
         cout << A.node[i].val << " ";
     }cout << "\n";
+
+    cout << "\n\n";
+
+    ///// List Merge Test
+    List<int, 10000> B = List<int, 10000>();
+    for(int i = 0; i <= 30; i++){
+        int num = rand()%MOD;
+        B.push_back( num );
+        stl.push_back(num);
+    }
+
+    cout << "A\t";
+    for(ADDR it = A.begin(); it != A.end(); it = A.next(it)){
+        cout << A.get(it) << " ";
+    }cout << "\n";
+
+    cout << "B\t";
+    for(ADDR it = B.begin(); it != B.end(); it = B.next(it)){
+        cout << B.get(it) << " ";
+    }cout << "\n";
+
+    List<int, 10000> C = List<int, 10000>();
+
+    Merge_List(A,B,C);
+
+    cout << "C\t";
+    for(ADDR it = C.begin(); it != C.end(); it = C.next(it)){
+        cout << C.get(it) << " ";
+    }cout << "\n";
+    cout << "A Size: " << A.size() << "\n";
+    cout << "B Size: " << B.size() << "\n";
+    cout << "C Size: " << C.size() << "\n";
+    cout << "\n\n";
+
+    cout << "A\t";
+    for(ADDR it = A.begin(); it != A.end(); it = A.next(it)){
+        cout << A.get(it) << " ";
+    }cout << "\n";
+
+    cout << "B\t";
+    for(ADDR it = B.begin(); it != B.end(); it = B.next(it)){
+        cout << B.get(it) << " ";
+    }cout << "\n";
+
+    C.clear();
+    Merge_List_withSort(A,B,C);
+
+    cout << "C\t";
+    for(ADDR it = C.begin(); it != C.end(); it = C.next(it)){
+        cout << C.get(it) << " ";
+    }cout << "\n";
+
+    stl.sort();
+    cout << "S\t";
+    for(list<int>::iterator it = stl.begin(); it != stl.end(); ++it){
+        cout << *it << " ";
+    }cout << "\n";
+
+    cout << "A Size: " << A.size() << "\n";
+    cout << "B Size: " << B.size() << "\n";
+    cout << "C Size: " << C.size() << "\n";
+    cout << "S Size: " << stl.size() << "\n";
+    cout << "\n\n";
 
     return 0;
 }
